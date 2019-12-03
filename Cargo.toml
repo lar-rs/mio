@@ -1,0 +1,35 @@
+[package]
+name = "mio"
+version = "0.0.7"
+authors = ["Sascha Smolkov <sascha.smolkov@gmail.com>"]
+edition = "2018"
+keywords = ["hal","pump","valve","ndir","airflow", "humidity", "pressure"]
+license = "Apache-2.0 OR MIT"
+readme = "README.md"
+repository = "https://github.com/lar-rs/can"
+
+
+[badges]
+maintenance = { status = "experimental" }
+travis-ci = { repository = "lar-rs/mio", branch = "master"}
+
+
+[dependencies]
+embedded-hal = { version = "0.2.3", features = ["unproven"] }
+nb = "0.1.2"
+serde = { version = "1.0", default-features = false, features = ["derive"] }
+heapless = "0.5.1"
+generic-array = "0.13.2"
+gregor = "0.3.3"
+bitflags = "1.2.1"
+rppal = "*"
+void = { version = "1.0.2" }
+
+# Async optional ?
+async-std  = { version = "1.2.0", features = ["unstable"] }
+async-log  = "2.0.0"
+# futures-preview = {version = "0.3.0-alpha.19", features = ["async-await"], optional = true }
+async-trait = "0.1.19"
+
+[dev-dependencies]
+embedded-hal-mock = "0.7.0"

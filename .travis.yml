@@ -1,0 +1,30 @@
+language: rust
+rust: nightly
+os: linux
+cache: cargo
+
+
+matrix:
+  include:
+    - name: "Rust build"
+      script:
+        - cargo build --verbose
+    - name: "Rust Docs"
+      before_script:
+        - DEPLOY_DOCS=1
+      script:
+        - cargo doc --all --no-deps
+      env:
+        - RUSTFLAGS="-D warnings", CARGO_INCREMENTAL=0
+    
+
+deploy:
+  - provider: pages
+    skip-cleanup: true
+    github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+    keep-history: true
+    local-dir: target/doc
+    branch: gh-pages
+    # on:
+      # branch: master
+      # condition: $DEPLOY_DOCS = 1
