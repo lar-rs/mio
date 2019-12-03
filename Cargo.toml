@@ -30,6 +30,7 @@ async-std  = { version = "1.2.0", features = ["unstable"] }
 async-log  = "2.0.0"
 # futures-preview = {version = "0.3.0-alpha.19", features = ["async-await"], optional = true }
 async-trait = "0.1.19"
+dirs = "2.0.2"
 
 [dev-dependencies]
 embedded-hal-mock = "0.7.0"

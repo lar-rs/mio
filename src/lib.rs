@@ -1,8 +1,8 @@
 pub mod analog;
 pub mod digital;
-pub mod uart;
 pub mod canmsg;
 pub mod furnace;
+pub mod sensor;
 pub mod pump;
 pub mod lamp;
 pub mod relay;
@@ -22,12 +22,12 @@ pub use self::valve::Valve;
 pub use self::xysys::Axis;
 use async_std::io;
 use async_std::fs;
-
 use async_std::path::PathBuf;
+use std::env;
+// 
 
-
-pub async fn rootdir() -> io::Result<PathBuf> {
-    let path = PathBuf::from(".pwa");
+pub async fn miofs() -> io::Result<PathBuf> {
+    let path = PathBuf::from(env::var("HOME").unwrap_or("./".to_owned())).join(".pwa/mio");
     if !path.is_dir().await {
         fs::create_dir_all(&path).await?;
         let mio = path.join("mio");
