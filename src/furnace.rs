@@ -3,57 +3,74 @@
 ///
 
 // use async_std::prelude::*;
-use async_std::io::Result;
-use async_trait::async_trait;
+// use async_std::io;
+use async_std::fs;
+use async_std::prelude::*;
+use async_std::stream;
+use std::time::Duration;
+use async_std::path::PathBuf;
+// use async_trait::async_trait;
+use super::{error,MioError};
 
-#[async_trait]
-pub trait Furnace{
-    async fn is_open(&self)   -> Result<bool>;
-    async fn open(&mut self)  -> Result<()>;
-    async fn close(&mut self) -> Result<()>;
-    async fn ready(&mut self) -> Result<bool>;
+
+
+pub struct Furnace {
+    path: PathBuf,
 }
 
-
-
-// #[cfg(feature = "mosk")]
-pub mod mosk {
-    use async_std::prelude::*;
-    use async_std::stream;
-    use std::time::Duration;
-    use async_trait::async_trait;
-    use async_std::io::Result;
-
-    pub struct Furnace {
-        open: bool 
-
-
+impl Furnace{
+    pub async fn is_open(&self)   -> Result<bool,MioError> {
+        match fs::read_to_string(self.path.join("isopen")).await?.as_str() {
+            "1" => Ok(true),
+            _ => Ok(false),
+        }
     }
-
-    #[async_trait]
-    impl super::Furnace for Furnace {
-        async fn is_open(&self)   -> Result<bool> {
-            Ok(self.open)
+    pub async fn is_close(&self)   -> Result<bool,MioError> {
+        match fs::read_to_string(self.path.join("isclose")).await?.as_str() {
+            "1" => Ok(true),
+            _ => Ok(false),
         }
-
-        async fn open(&mut self)  -> Result<()> {
-            if !self.open {
-                let mut interval  = stream::interval(Duration::from_secs(2));
-                interval.next().await;
-                self.open = true;
-            }
-            Ok(())
+    }
+    pub async fn is_ready(&mut self) -> Result<bool,MioError> {
+        match fs::read_to_string(self.path.join("ready")).await?.as_str() {
+            "1" => Ok(true),
+            _ => Ok(false),
         }
-        async fn close(&mut self) -> Result<()> {
-            if self.open {
-                let mut interval  = stream::interval(Duration::from_secs(2));
-                interval.next().await;
-                self.open = false;
-            }
-            Ok(())
+     }
+    pub async fn open(&mut self)  -> Result<(),MioError> {
+        fs::write(self.path.join("open"), b"1").await?;
+        let mut interval  = stream::interval(Duration::from_millis(500)).take(10);
+        let now = std::time::SystemTime::now();
+        while let Some(_) = interval.next().await {
+            if self.is_open().await? {
+                 break;
+             }
+         } 
+         fs::write(self.path.join("open"), b"0").await?;
+         if !self.is_open().await? {
+            let msg = format!("furnace open fail - timeout in {} millis",
+            now.elapsed().unwrap_or(Duration::from_millis(999999u64)).as_millis());
+            log::warn!("{}",msg.as_str());
+            return Err(error::driver_timeout(msg))
         }
-        async fn ready(&mut self) -> Result<bool> {
-           Ok(true)
+         Ok(())
+    }
+    pub async fn close(&mut self) -> Result<(),MioError> {
+        fs::write(self.path.join("close"), b"1").await?;
+        let mut interval  = stream::interval(Duration::from_millis(500)).take(10);
+        let now = std::time::SystemTime::now();
+        while let Some(_) = interval.next().await {
+            if self.is_close().await? {
+                 break;
+             }
+         } 
+        fs::write(self.path.join("close"), b"0").await?;
+        if !self.is_close().await? {
+            let msg = format!("furnace open fail - timeout in {} millis",
+            now.elapsed().unwrap_or(Duration::from_millis(999999u64)).as_millis());
+            log::warn!("{}",msg.as_str());
+            return Err(error::driver_timeout(msg))
         }
+        Ok(())
     }
 }

@@ -1,38 +1,44 @@
+pub mod error;
+pub mod driver;
 pub mod analog;
+pub mod airflow;
 pub mod digital;
-pub mod canmsg;
 pub mod furnace;
 pub mod sensor;
 pub mod pump;
 pub mod lamp;
+pub mod fluid;
 pub mod relay;
 pub mod valve;
-pub mod xysys;
+pub mod axis;
 pub mod tmpfs;
+pub mod uv;
 
-
-
-pub use self::analog::{Input,Output};
-pub use self::canmsg::{CanMsg};
-pub use self::furnace::{Furnace};
-pub use self::pump::Pump;
+pub use self::error::MioError;
+pub use self::driver::{Driver,HID};
+pub use self::analog::ADC;
+pub use self::airflow::Airflow;
+pub use self::furnace::Furnace;
+pub use self::pump::{GearPump,ImpulsePump};
 pub use self::lamp::Lamp;
+pub use self::fluid::Fluid;
 pub use self::relay::Relay;
 pub use self::valve::Valve;
-pub use self::xysys::Axis;
+pub use self::sensor::Sensor;
+pub use self::axis::Axis;
+pub use self::uv::Uv;
+
 use async_std::io;
 use async_std::fs;
 use async_std::path::PathBuf;
-use std::env;
+// use std::env;
 // 
 
 pub async fn miofs() -> io::Result<PathBuf> {
-    let path = PathBuf::from(env::var("HOME").unwrap_or("./".to_owned())).join(".pwa/mio");
+    let path = PathBuf::from("/pwa/mio");
     if !path.is_dir().await {
         fs::create_dir_all(&path).await?;
-        let mio = path.join("mio");
-        fs::create_dir_all(&mio).await?;
-        tmpfs::mount(&mio).await?;
+        tmpfs::mount(&path).await?;
     }
     Ok(path)
 }

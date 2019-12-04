@@ -9,7 +9,7 @@
 ![Minimum Rust Version][min-rust-badge]
 
 LAR Hardware abstraction layer 
-![pipeline status](https://travis-ci.com/lar-rs/hal.svg?branch=master)
+![pipeline status](https://travis-ci.com/lar-rs/mio.svg?branch=master)
 ![Minimum Rust Version][min-rust-badge]
 analyzer redisign in [🦀 **Rust**](https://github.com/rust-lang)
 
@@ -27,31 +27,33 @@ This is a collection of types
 - [x] 🔧 `Relay`
 - [x] 🔬 `Sensor`
 - [C] 🔩 `Valve`
-- [X]    `Lamp`
-- [X]    `Relay`
+- [X] ⚡  `Lamp`
+- [X] 📟 `Relay`
+- [X] ⚙  `Axis`
+- [X] 🧯 `Furnace`
 - [X] ⚙️  `Autosampler`
 - [X] 🚴 `Indicators`
+- [X] 🧰 `Uv`
 - [ ] 🔋 `Batterie`
 ## 🎙️ Commands
 
 
 ## TODO
-* Uv
-* Ultra
-* Nitritoc
-* Loop
+* 🧰 `Ultra`
+* 🧰 `Nitri`
+* 🧰 `Loop`
 - [ ] ...
 
-Pull requests for more mock implementations are welcome! :)
+*Pull requests for more mock implementations are welcome! :)*
 
 
-## no\_std
+## ⚠ no\_std ⛔
 
 Currently this crate is not `no_std`. If you think this is important, let me
 know.
 
 
-## Usage
+## Usage ⛔
 
 See [docs](https://docs.rs/embedded-hal-mock/).
 Rust embedded hal [github](https://github.com/rust-embedded/embedded-hal)

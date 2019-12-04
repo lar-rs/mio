@@ -8,15 +8,13 @@ use async_std::io;
 use async_std::fs;
 use async_std::path::{PathBuf,Path};
 use serde::{Serialize,Deserialize};
+use super::{driver,Driver,HID,MioError};
 // use async_std::stream;
 // use std::time::{Duration,Instant};
 pub const SIGNAL: &'static str = "signal";
-pub const LABEL: &'static str = "label";
-pub const UNIT: &'static str = "unit";
 pub const VALUE: &'static str = "value";
 pub const INTERVAL: &'static str = "interval";
 pub const SCALE: &'static str = "scale";
-pub const MODEL: &'static str = "model";
 
 
 use std::time::SystemTime;
@@ -78,45 +76,54 @@ impl Signal{
         Signal { path,start }
     }
 }
+impl From<Driver> for Sensor {
+    fn from(drv:Driver) -> Sensor {
+        Sensor{
+            path: drv.path
+        }
+    }
+}
 
 pub struct Sensor {
     path:     PathBuf,
-    pub unit:     String,
-    pub label:    String,
-    pub value:    f32,
-    pub model:    String,
 }
 
 impl Sensor {
-    pub async fn select(path: &Path) -> io::Result<Sensor> {
-        let model = fs::read_to_string(path.join(MODEL)).await?;
-        let unit    = fs::read_to_string(path.join(UNIT)).await?;
-        let label    = fs::read_to_string(path.join(LABEL)).await?;
-        let value = fs::read_to_string(path.join(VALUE)).await?.parse::<f32>().unwrap_or(0.0);
-        let path  = path.to_path_buf();
-        Ok(Sensor{path,label,unit,model,value})
+    pub async fn select(path: &Path) -> Result<Sensor,MioError> {
+        let path    = path.to_path_buf();
+        Ok(Sensor{path})
     }
-    pub async fn signal(&mut self) -> io::Result<Signal>{
+    pub async fn signal(&mut self) -> Result<Signal,MioError>{
         Ok(Signal::new(self.path.join(SIGNAL)))
     }
-    pub async fn value (&mut self) -> io::Result<f32> {
-        let value = fs::read_to_string(self.path.join(VALUE)).await?.parse::<f32>().unwrap_or(0.0);
-        Ok(0.0)
-    }
-    pub async fn scale (&self) -> io::Result<f32>{
-        let value = fs::read_to_string(self.path.join(SCALE)).await?.parse::<f32>().unwrap_or(1.0);
+    pub async fn value (&mut self) -> Result<f32,MioError> {
+        let value = fs::read_to_string(self.path.join(VALUE)).await?.parse::<f32>()?;
         Ok(value)
     }
-    pub async fn interval (&self) -> io::Result<u64>{
-        let interval = fs::read_to_string(self.path.join(INTERVAL)).await?.parse::<u64>().unwrap_or(500);
+    pub async fn scale (&self) -> Result<f32,MioError>{
+        let value = fs::read_to_string(self.path.join(SCALE)).await?.parse::<f32>()?;
+        Ok(value)
+    }
+    pub async fn interval (&self) -> Result<u64,MioError>{
+        let interval = fs::read_to_string(self.path.join(INTERVAL)).await?.parse::<u64>()?;
         Ok(interval)
     }
-    pub async fn set_scale (&mut self,scale:f32) -> io::Result<()>{
+    pub async fn set_scale (&mut self,scale:f32) -> Result<(),MioError>{
         fs::write(self.path.join(SCALE),format!("{}",scale).as_bytes()).await?;
         Ok(())
     }
-    pub async fn set_interval(&mut self, millis: u64) -> io::Result<()>{
+    pub async fn set_interval(&mut self, millis: u64) -> Result<(),MioError>{
         fs::write(self.path.join(INTERVAL),format!("{}",millis).as_bytes()).await?;
         Ok(())
     }
+}
+
+pub async fn ndir(path:&Path) -> io::Result<Sensor> {
+    driver::create(path,HID::NDir).await?;
+    fs::write(path.join(VALUE), b"0.0").await?;
+    fs::write(path.join(INTERVAL), b"500").await?;
+    fs::write(path.join(SCALE), b"1.0").await?;
+    fs::write(path.join(SIGNAL), b"").await?;
+    let sensor = Sensor::select(path).await?;
+    Ok(sensor)
 }

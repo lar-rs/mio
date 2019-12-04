@@ -3,60 +3,32 @@
 ///
 ///
 ///
-use async_std::io::Result;
+// use async_std::io;
+use async_std::path::{PathBuf,Path};
+use super::{driver,MioError,HID};
 // use async_std::prelude::*;
-use async_trait::async_trait;
+// use async_trait::async_trait;
 
-/// Analog input
-#[async_trait]
-pub trait Input{
-    type Value;
-    async fn get(&mut self)->Result<Self::Value>;
-    // pub async fn (&mut self)->nb::Result<Self::Value,Self::Error>;
+
+
+
+pub struct ADC {
+    path: PathBuf,
 }
 
 
-/// Analog input
-#[async_trait]
-pub trait Output{
-    type Value;
-    async fn set(&mut self,v:Self::Value)->Result<()>;
-    // pub async fn (&mut self)->nb::Result<Self::Value,Self::Error>;
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct AnalogIn{
-    value: f32,
-}
-
-
-#[async_trait]
-impl Input for AnalogIn {
-    type Value = f32;
-    async fn get(&mut self)->Result<Self::Value> {
-        Ok(self.value)
+impl ADC {
+    /// current in mAh
+    pub async fn current(&self) -> Result<f32,MioError> {
+        Ok(0.0)
     }
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct AnalogOut{
-    value: f32,
-}
-
-#[async_trait]
-impl Input for AnalogOut {
-    type Value = f32;
-    async fn get(&mut self)->Result<Self::Value> {
-        Ok(self.value)
+    /// digital retros
+    pub async fn digital(&self) -> Result<u32,MioError> {
+        Ok(0)
     }
+
 }
 
-#[async_trait]
-impl Output for AnalogOut {
-    type Value = f32;
-    async fn set(&mut self,value:Self::Value)->Result<()> {
-        self.value = value;
-        Ok(())
-    }
+pub async fn simulation(path:&Path) -> Result<ADC,MioError> {
+    Ok(ADC{path:driver::create(path,HID::Airflow).await?.into()})
 }
-

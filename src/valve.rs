@@ -3,9 +3,11 @@
 // use async_std::prelude::*;
 // use async_std::stream;
 use async_std::io;
+use async_std::fs;
 use async_std::path::{PathBuf,Path};
 // use std::time::{Duration};
-use super::digital::Digital;
+use super::{driver,Driver,HID,MioError};
+
 
 // /// Single digital push-pull output pin
 // #[async_trait]
@@ -26,35 +28,30 @@ use super::digital::Digital;
 
  /// Lamp simulation
  pub struct Valve {
-    digital: Digital,
     path: PathBuf,
+}
+impl From<Driver> for Valve {
+    fn from(driver:Driver) -> Valve {
+        Valve{
+            path: driver.path
+        }
+    }
 }
 
 impl Valve {
-    pub async fn select(path: &Path) -> io::Result<Valve> {
-        Ok({
-            Valve{
-                digital:Digital::select(&path.join("driver")).await?,
-                path: path.to_path_buf(),
-            }
-        })
-    }
-    pub async fn open(&mut self)  -> io::Result<()> {
-        self.digital.set_high().await?;
-        // if !self.open{
-        //     let mut interval  = stream::interval(Duration::from_millis(250));
-        //     interval.next().await;
-        //     self.open = true;
-        // }
+    pub async fn open(&mut self) -> io::Result<()> {
+        fs::write(self.path.join("state"), b"1").await?;
         Ok(())
     }
     pub async fn close(&mut self) -> io::Result<()> {
-        self.digital.set_low().await?;
-        // if self.open {
-        //     let mut interval  = stream::interval(Duration::from_millis(250));
-        //     interval.next().await;
-        //     self.open = false;
-        // }
+        fs::write(self.path.join("state"), b"0").await?;
         Ok(())
     }
+}
+
+pub async fn create(path:&Path) -> Result<Valve,MioError> {
+    let driver = driver::create(path,HID::Valve).await?;
+    fs::create_dir_all(path).await?;
+    fs::write(path.join("value"), b"0").await?;
+    Ok(driver.into())
 }
