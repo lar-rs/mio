@@ -1,129 +1,111 @@
-/// Digital Input Output interface 
+/// Digital DigIN DigOUT interface 
 /// 
-// use async_std::prelude::*;
-use async_std::io;
-use async_std::fs;
+// use std::prelude::*;
+// use std::io;
+use std::fs;
 use std::fmt;
-// use async_std::task;
+// use std::task;
 // use sysfs_gpio::{Direction,Pin};
-use async_std::path::{ Path, PathBuf};
-use async_trait::async_trait;
-use super::{MioError,driver,HID};
-
+use std::path::{PathBuf};
+use super::*;
 pub const VALUE: &'static str = "value";
 
-#[async_trait]
-pub trait Input{
-    async fn is_low(&self,path:&Path) -> io::Result<bool> {
-        match fs::read_to_string(path.join(VALUE)).await?.as_str() {
-            "1" => Ok(false),
-            _ => Ok(true),
-        }
-    }
-    async fn is_high(&self,path:&Path) -> io::Result<bool>{
-        match fs::read_to_string(path.join(VALUE)).await?.as_str() {
-            "1" => Ok(true),
-            _ => Ok(false),
-        }
+use std::convert::TryFrom;
+/// interface transfer
+impl TryFrom<Interface> for DigIN {
+    type Error = Error;
+    fn try_from(iface: Interface) -> Result<Self> {
+        iface.set_itype(IType::DigIN)?;
+        Ok(Self{
+            path:iface.path,
+        })
     }
 }
-#[async_trait]
-pub trait Output{
-    async fn set_low(&self,path:&Path) -> io::Result<()> {
-        fs::write(path.join(VALUE), b"0").await?;
-        Ok(())
-    }
-    async fn set_high(&self,path:&Path) -> io::Result<()> {
-        fs::write(path.join(VALUE), b"1").await?;
-        Ok(())
-    }
-    async fn is_low(&self,path:&Path) -> io::Result<bool> {
-        match fs::read_to_string(path.join(VALUE)).await?.as_str() {
+
+/// DigIN output
+pub struct DigIN {
+    pub path:  PathBuf,
+}
+
+impl DigIN{
+    /// Check pin 
+    pub fn is_low(&self) -> Result<bool> {
+        match fs::read_to_string(self.path.join(VALUE))?.as_str() {
             "1" => Ok(false),
             _ => Ok(true),
         }
     }
-    async fn is_high(&self,path:&Path) -> io::Result<bool>{
-        match fs::read_to_string(path.join(VALUE)).await?.as_str() {
+    pub fn is_high(&self) -> Result<bool>{
+        match fs::read_to_string(self.path.join(VALUE))?.as_str() {
             "1" => Ok(true),
             _ => Ok(false),
         }
     }
 }
 
-/// Digital simulation
-pub struct Digital {
-    path:  PathBuf,
+/// Digital output
+pub struct DigOUT {
+    pub path:  PathBuf,
 }
 
-#[async_trait]
-impl Output for Digital{}
-
-impl Digital{
-    pub async fn select(path:&Path) -> io::Result<Digital> {
-        Ok(
-            Digital{
-                path: path.to_path_buf(),
-            }
-        )
+impl From<&Interface> for DigOUT {
+    #[inline]
+    fn from(device:&Interface) -> DigOUT {
+        DigOUT{
+            path: device.path.to_path_buf()
+        }
     }
-    pub async fn toggle(&mut self) -> io::Result<bool> {
-        if self.is_high(&self.path).await? {
-            self.set_low(&self.path).await?;
+}
+
+impl From<&Interface> for DigIN {
+    #[inline]
+    fn from(device:&Interface) -> DigIN {
+        DigIN{
+            path: device.path.to_path_buf()
+        }
+    }
+}
+impl From<&DigOUT> for DigIN {
+    #[inline]
+    fn from(out:&DigOUT) -> DigIN {
+        DigIN{
+            path: out.path.to_path_buf()
+        }
+    }
+}
+
+/// interface transfer
+impl TryFrom<Interface> for DigOUT {
+    type Error = Error;
+    fn try_from(iface: Interface) -> Result<Self> {
+        iface.set_itype(IType::DigOUT)?;
+        Ok(Self{
+            path:iface.path,
+        })
+    }
+}
+
+
+impl DigOUT{
+    fn set_low(&self) -> Result<()> {
+        fs::write(self.path.join(VALUE), b"0")?;
+        Ok(())
+    }
+    fn set_high(&self) -> Result<()> {
+        fs::write(self.path.join(VALUE), b"1")?;
+        Ok(())
+    }
+    pub fn toggle(&self) -> Result<bool> {
+        let input = DigIN::from(self);
+        if input.is_high()? {
+            self.set_low()?;
             Ok(false)
         }else {
-            self.set_high(&self.path).await?;
+            self.set_high()?;
             Ok(true)
         }
     }
 }
-
-pub async fn get_value(path:&Path) -> Result<bool,MioError> {
-    match fs::read_to_string(path.join(VALUE)).await?.as_str() {
-        "1" => Ok(true),
-        _ => Ok(false),
-    }
-}
-pub async fn set_value(path:&Path,val:bool) -> Result<(),MioError> {
-    fs::write(path.join(VALUE),match val {
-        true  => b"1",
-        false => b"0",
-    }).await?;
-    Ok(())
-}
-pub async fn set_high(path:&Path) -> Result<(),MioError> {
-    set_value(path,true).await
-}
-pub async fn set_low(path:&Path) -> Result<(),MioError> {
-    set_value(path,false).await
-}
-pub async fn is_low(path:&Path) -> Result<bool,MioError> {
-    let val = get_value(path).await?;
-    Ok(!val)
-}
-pub async fn is_high(path:&Path) -> Result<bool,MioError>{
-    let val = get_value(path).await?;
-    Ok(!val)
-}
-
-// pub async fn link_output_gpio(dest:&Path,pin:u64) -> Result<(),MioError> {
-//     // let path = gpiosys().await?;
-//     let path = format!("/sys/class/gpio/gpio{}",pin);
-//     let pin = Pin::new(pin);
-//     pin.export()?;
-//     pin.set_direction(Direction::Low).unwrap();
-//     pin.set_value(0).unwrap();
-//     fs::hard_link(dest.join("value"), path.join("value")).await?;
-//     Ok(())
-// }
-
-
-pub async fn simulation(path:&Path) -> Result<Digital,MioError> {
-    driver::create(path,HID::DigitalOut).await?;
-    fs::write(path.join("value"), b"0").await?;
-    let dig = Digital::select(path).await?;
-    Ok(dig)
-} 
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Direction {

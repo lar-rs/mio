@@ -1,34 +1,39 @@
+/// Analog [IN:OUT]
+///  * input12
+///  * output32
 ///
-/// Analog IN OUT
-///
-///
-///
-// use async_std::io;
-use async_std::path::{PathBuf,Path};
-use super::{driver,MioError,HID};
-// use async_std::prelude::*;
-// use async_trait::async_trait;
+
+use std::path::{PathBuf};
+use super::*;
+use std::fs;
+use std::convert::TryFrom;
 
 
 
 
-pub struct ADC {
-    path: PathBuf,
+
+pub struct Analog {
+    pub path: PathBuf,
 }
 
 
-impl ADC {
-    /// current in mAh
-    pub async fn current(&self) -> Result<f32,MioError> {
-        Ok(0.0)
+impl TryFrom<Interface> for Analog {
+    type Error = Error;
+    fn try_from(iface: Interface) -> Result<Self> {
+        iface.set_itype(IType::ADC)?;
+        Ok(Self{
+            path:iface.path,
+        })
     }
-    /// digital retros
-    pub async fn digital(&self) -> Result<u32,MioError> {
-        Ok(0)
-    }
-
 }
 
-pub async fn simulation(path:&Path) -> Result<ADC,MioError> {
-    Ok(ADC{path:driver::create(path,HID::Airflow).await?.into()})
+impl Analog {
+    pub fn read_value(&self) -> Result<u32> {
+        let value = fs::read_to_string(self.path.join("value"))?.parse::<u32>()?;
+        Ok(value)
+    }
+    pub fn write_value(&self,value:u32) -> Result<u32> {
+        fs::write(self.path.join("value"),format!("{}",value).as_bytes())?;
+        Ok(value)
+    }
 }

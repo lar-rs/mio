@@ -3,13 +3,14 @@
 ///
 ///
 
-// use async_std::prelude::*;
-use async_std::io;
-use async_std::fs;
-use async_std::path::{PathBuf,Path};
+// use std::prelude::*;
+use std::fmt;
+// use std::io;
+use std::fs;
+use std::path::{PathBuf,Path};
 use serde::{Serialize,Deserialize};
-use super::{driver,Driver,HID,MioError};
-// use async_std::stream;
+use super::*;
+// use std::stream;
 // use std::time::{Duration,Instant};
 pub const SIGNAL: &'static str = "signal";
 pub const VALUE: &'static str = "value";
@@ -17,7 +18,7 @@ pub const INTERVAL: &'static str = "interval";
 pub const SCALE: &'static str = "scale";
 
 
-use std::time::SystemTime;
+// use std::time::SystemTime;
 
 // use core::ops::Range;
 
@@ -46,7 +47,60 @@ impl Default for Integration {
         }
     }
 }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum State {
+    Down,
+    Up,
+    Start,
+    Brocket,
+}
 
+
+
+impl From<u8> for State {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => State::Down,
+            1 => State::Up,
+            2 => State::Start,
+            _ => State::Brocket,
+        }
+    }
+}
+
+impl From<State> for u8 {
+    fn from(state:State) -> u8 {
+        state.into()
+    }
+}
+
+impl From<&str> for State {
+    fn from(value: &str) -> Self {
+        match value {
+            "down"    =>  State::Down,
+            "up"      =>  State::Up,
+            "start"   =>  State::Start,
+            _         =>  State::Brocket
+        }
+    }
+}
+
+impl From<String> for State {
+    fn from(value: String) -> Self {
+        State::from(value.as_str())
+    }
+}
+
+impl fmt::Display for State {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            State::Down    =>  return write!(f,"down"),
+            State::Up      =>  return write!(f,"up"),
+            State::Start   =>  return write!(f,"start"),
+            State::Brocket =>  return write!(f,"brocket"),
+        }
+    }
+}
 
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
 pub struct Data {
@@ -65,65 +119,69 @@ impl Data{
     }
 }
 
-pub struct Signal {
-    path: PathBuf,
-    start: SystemTime,
-}
+// pub struct Signal {
+//     path: PathBuf,
+//     start: SystemTime,
+// }
 
-impl Signal{
-    pub fn new(path:PathBuf)-> Signal {
-        let start = SystemTime::now();
-        Signal { path,start }
+// impl Signal{
+//     pub fn new(path:PathBuf)-> Signal {
+//         let start = SystemTime::now();
+//         Signal { path,start }
+//     }
+// }
+
+
+use std::convert::TryFrom;
+impl TryFrom<Interface> for Sensor {
+    type Error = Error;
+    fn try_from(iface: Interface) -> Result<Self> {
+        iface.set_itype(IType::NDir)?;
+        Ok(Self{
+            path:iface.path,
+        })
     }
 }
-impl From<Driver> for Sensor {
-    fn from(drv:Driver) -> Sensor {
-        Sensor{
-            path: drv.path
-        }
-    }
-}
-
 pub struct Sensor {
     path:     PathBuf,
 }
 
 impl Sensor {
-    pub async fn select(path: &Path) -> Result<Sensor,MioError> {
+    pub fn select(path: &Path) -> Result<Sensor> {
         let path    = path.to_path_buf();
         Ok(Sensor{path})
     }
-    pub async fn signal(&mut self) -> Result<Signal,MioError>{
-        Ok(Signal::new(self.path.join(SIGNAL)))
-    }
-    pub async fn value (&mut self) -> Result<f32,MioError> {
-        let value = fs::read_to_string(self.path.join(VALUE)).await?.parse::<f32>()?;
+    // pub fn signal(&mut self) -> Result<Signal>{
+        // Ok(Signal::new(self.path.join(SIGNAL)))
+    // }
+    pub fn value (&mut self) -> Result<f32> {
+        let value = fs::read_to_string(self.path.join(VALUE))?.parse::<f32>()?;
         Ok(value)
     }
-    pub async fn scale (&self) -> Result<f32,MioError>{
-        let value = fs::read_to_string(self.path.join(SCALE)).await?.parse::<f32>()?;
+    pub fn scale (&self) -> Result<f32>{
+        let value = fs::read_to_string(self.path.join(SCALE))?.parse::<f32>()?;
         Ok(value)
     }
-    pub async fn interval (&self) -> Result<u64,MioError>{
-        let interval = fs::read_to_string(self.path.join(INTERVAL)).await?.parse::<u64>()?;
+    pub fn interval (&self) -> Result<u64>{
+        let interval = fs::read_to_string(self.path.join(INTERVAL))?.parse::<u64>()?;
         Ok(interval)
     }
-    pub async fn set_scale (&mut self,scale:f32) -> Result<(),MioError>{
-        fs::write(self.path.join(SCALE),format!("{}",scale).as_bytes()).await?;
+    pub fn set_scale (&mut self,scale:f32) -> Result<()>{
+        fs::write(self.path.join(SCALE),format!("{}",scale).as_bytes())?;
         Ok(())
     }
-    pub async fn set_interval(&mut self, millis: u64) -> Result<(),MioError>{
-        fs::write(self.path.join(INTERVAL),format!("{}",millis).as_bytes()).await?;
+    pub fn set_interval(&mut self, millis: u64) -> Result<()>{
+        fs::write(self.path.join(INTERVAL),format!("{}",millis).as_bytes())?;
         Ok(())
     }
 }
 
-pub async fn ndir(path:&Path) -> io::Result<Sensor> {
-    driver::create(path,HID::NDir).await?;
-    fs::write(path.join(VALUE), b"0.0").await?;
-    fs::write(path.join(INTERVAL), b"500").await?;
-    fs::write(path.join(SCALE), b"1.0").await?;
-    fs::write(path.join(SIGNAL), b"").await?;
-    let sensor = Sensor::select(path).await?;
-    Ok(sensor)
-}
+// pub fn ndir(path:&Path) -> io::Result<Sensor> {
+//     device::create(path,IType::NDir)?;
+//     fs::write(path.join(VALUE), b"0.0")?;
+//     fs::write(path.join(INTERVAL), b"500")?;
+//     fs::write(path.join(SCALE), b"1.0")?;
+//     fs::write(path.join(SIGNAL), b"")?;
+//     let sensor = Sensor::select(path)?;
+//     Ok(sensor)
+// }

@@ -1,18 +1,13 @@
-// use std::fmt;
 use serde::{Deserialize, Serialize};
+use super::*;
+use std::fs;
+use std::path::{PathBuf};
 
-use super::{driver,MioError,HID};
-use async_std::fs;
-// use async_std::stream::Stream;
-use async_std::path::{PathBuf,Path};
-// use async_std::stream;
-// use std::time::Duration;
-// use async_std::prelude::*;
-pub const INPUT:  &'static str = "input";
-pub const OUTPUT: &'static str = "output";
+pub const INPUT:  &'static str     = "input";
+pub const OUTPUT: &'static str     = "output";
 pub const CORELATION: &'static str = "corelation";
-pub const REFERENCE: &'static str = "reference";
-pub const DEVIATION: &'static str = "deviation";
+pub const REFERENCE: &'static str  = "reference";
+pub const DEVIATION: &'static str  = "deviation";
 
 /// für 0..60:   0.230197;
 // static AC:[f32;7] = [0.003836617, -0.06027397,0.3727283,-1.1430475,1.83842,-1.4032,0.39159];
@@ -39,57 +34,76 @@ pub struct Config {
     pub monitorin_interval:   u64,
 }
 
+impl From<&Interface> for Airflow {
+    #[inline]
+    fn from(device:&Interface) -> Airflow {
+        Airflow{
+            path: device.path.to_path_buf()
+        }
+    }
+}
+
+use std::convert::TryFrom;
+/// interface transfer
+impl TryFrom<Interface> for Airflow {
+    type Error = Error;
+    fn try_from(iface: Interface) -> Result<Self> {
+        iface.set_itype(IType::Airflow)?;
+        Ok(Self{
+            path:iface.path,
+        })
+    }
+}
 
 
 /// Hardware airflow sensor.
 pub struct Airflow {
-    path : PathBuf,
+    pub path : PathBuf,
 }
 
 impl Airflow {
+    pub fn create(iface:Interface) -> Result<Airflow> {
+        //     fs::write(dev.path.join(INPUT), b"0")?;
+        //     fs::write(dev.path.join(OUTPUT), b"0")?;
+        //     fs::write(dev.path.join(CORELATION), b"1.0")?;
+        //     fs::write(dev.path.join(REFERENCE), b"30.0")?;
+        //     fs::write(dev.path.join(DEVIATION), b"5.0")?;
+        Ok(Airflow::try_from(iface)?)
+    }
 
     /// Returns volume rate on input reported by sensor.
-    pub async fn input(&self) -> Result<f32,MioError> {
-        let value = fs::read_to_string(self.path.join(INPUT)).await?.parse::<f32>()?;
+    pub fn input(&self) -> Result<f32> {
+        let value = fs::read_to_string(self.path.join(INPUT))?.parse::<f32>()?;
         Ok(value)
     }
     /// Returns volume rate on input reported by sensor.
-    pub async fn output(&self) -> Result<f32,MioError> {
-        let value = fs::read_to_string(self.path.join(OUTPUT)).await?.parse::<f32>()?;
+    pub fn output(&self) -> Result<f32> {
+        let value = fs::read_to_string(self.path.join(OUTPUT))?.parse::<f32>()?;
         Ok(value)
     }
     /// corelation value
-    pub async fn corelation(&self) -> Result<f32,MioError> {
-        let value = fs::read_to_string(self.path.join(CORELATION)).await?.parse::<f32>()?;
+    pub fn corelation(&self) -> Result<f32> {
+        let value = fs::read_to_string(self.path.join(CORELATION))?.parse::<f32>()?;
         Ok(value)
     }
     /// corelation value
-    pub async fn reference(&self) -> Result<f32,MioError> {
-        let value = fs::read_to_string(self.path.join(REFERENCE)).await?.parse::<f32>()?;
+    pub fn reference(&self) -> Result<f32> {
+        let value = fs::read_to_string(self.path.join(REFERENCE))?.parse::<f32>()?;
         Ok(value)
     }
     /// maximale erlaubte abweichung in procent 
-    pub async fn deviation(&self) -> Result<f32,MioError> {
-        let value = fs::read_to_string(self.path.join(DEVIATION)).await?.parse::<f32>()?;
+    pub fn deviation(&self) -> Result<f32> {
+        let value = fs::read_to_string(self.path.join(DEVIATION))?.parse::<f32>()?;
         Ok(value)
     }
 }
 
 
-// pub async fn airflow() -> Result<Airflow,MioError> {
-    // let path = super::miofs().await?.join("airflow");
+// pub fn airflow() -> Result<Airflow> {
+    // let path = super::miofs()?.join("airflow");
     // Ok(Airflow{path}) 
 // }
 
 
 
-pub async fn create(path:&Path) -> Result<Airflow,MioError> {
-    driver::create(path,HID::Airflow).await?;
-    fs::write(path.join(INPUT), b"0").await?;
-    fs::write(path.join(OUTPUT), b"0").await?;
-    fs::write(path.join(CORELATION), b"1.0").await?;
-    fs::write(path.join(REFERENCE), b"30.0").await?;
-    fs::write(path.join(DEVIATION), b"5.0").await?;
-    let path = path.to_path_buf();
-    Ok(Airflow{path})
-}
+//

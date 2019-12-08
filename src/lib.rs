@@ -1,4 +1,8 @@
 pub mod error;
+pub mod mio;
+pub mod iface;
+pub mod method;
+pub mod statistic;
 pub mod driver;
 pub mod analog;
 pub mod airflow;
@@ -11,13 +15,20 @@ pub mod fluid;
 pub mod relay;
 pub mod valve;
 pub mod axis;
-pub mod tmpfs;
+pub mod stirrer;
 pub mod uv;
+pub mod info;
 
 pub use self::error::MioError;
-pub use self::driver::{Driver,HID};
-pub use self::analog::ADC;
+pub use self::mio::Mio;
+pub use self::method::Method;
+pub use self::statistic::Statistic;
+pub use self::driver::Simulate;
+pub use self::digital::{DigIN,DigOUT};
+pub use self::iface::{Interface,IType,IClass};
+pub use self::analog::Analog;
 pub use self::airflow::Airflow;
+pub use self::stirrer::Stirrer;
 pub use self::furnace::Furnace;
 pub use self::pump::{GearPump,ImpulsePump};
 pub use self::lamp::Lamp;
@@ -28,29 +39,9 @@ pub use self::sensor::Sensor;
 pub use self::axis::Axis;
 pub use self::uv::Uv;
 
-use async_std::io;
-use async_std::fs;
-use async_std::path::PathBuf;
 // use std::env;
-// 
+//
 
-pub async fn miofs() -> io::Result<PathBuf> {
-    let path = PathBuf::from("/pwa/mio");
-    if !path.is_dir().await {
-        fs::create_dir_all(&path).await?;
-        tmpfs::mount(&path).await?;
-    }
-    Ok(path)
-}
-
-// pub mod mosk {
-    // pub use self::analog::mosk::{AnalogIn,AnalogOut};
-    // pub use self::furnace::mosk::{MoskFurnace};
-    // pub use self::pump::mosk::MoskPump;
-    // pub use self::lamp::mosk::MoskLamp;
-    // pub use self::relay::mosk::MoskRelay;
-    // pub use self::sensor::mosk::MoskSensor;
-    // pub use self::valve::mosk::MoskValve;
-    // pub use self::xysys::mosk::MoskAxis;
-// }
+pub type Error = error::MioError;
+pub type Result<T> = std::result::Result<T, Error>;
 

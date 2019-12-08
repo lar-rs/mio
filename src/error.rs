@@ -15,18 +15,19 @@ pub enum MioError {
     #[fail(display = "io error - {}",err)]
     IOError {err: Error },
     #[fail(display = "async error - {}",err)]
-    AsyncError {err: async_std::io::Error },
+    AsyncError {err: std::io::Error },
+    #[fail(display = "mount miofs error - {}",msg)]
+    Mount {msg: String},
     #[fail(display = "data error - {}",msg)]
     DataErr {msg: String},
-    #[fail(display = "driver timeout - {}",msg)]
+    #[fail(display = "device timeout - {}",msg)]
     DriverTimeout {msg: String},
     #[fail(display = "convert int error - {}", err)]
     ConvertInt{ err: std::num::ParseIntError },
     #[fail(display = "convert float error - {}", err)]
     ConvertFloat{ err:ParseFloatError },
-
-
 }
+
 
 
 pub fn wrong_data(msg:String) -> MioError {

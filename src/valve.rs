@@ -1,12 +1,10 @@
 /// Valve I/O
-// use async_std::prelude::*;
-// use async_std::prelude::*;
-// use async_std::stream;
-use async_std::io;
-use async_std::fs;
-use async_std::path::{PathBuf,Path};
+/// 
+use std::io;
+use std::fs;
+use std::path::{PathBuf};
 // use std::time::{Duration};
-use super::{driver,Driver,HID,MioError};
+use super::*;
 
 
 // /// Single digital push-pull output pin
@@ -16,42 +14,46 @@ use super::{driver,Driver,HID,MioError};
 //     ///
 //     /// *NOTE* the actual electrical state of the pin may not actually be low, e.g. due to external
 //     /// electrical sources
-//     async fn open(&mut self) -> Result<()>;
+//    fnopen(&mut self) -> Result<()>;
 
 //     /// Valve close
 //     ///
 //     /// *NOTE* the actual electrical state of the pin may not actually be high, e.g. due to external
 //     /// electrical sources
-//     async fn close(&mut self) -> Result<()>;
+//    fnclose(&mut self) -> Result<()>;
 // }
+
+use std::convert::TryFrom;
+impl TryFrom<Interface> for Valve {
+    type Error = Error;
+    fn try_from(iface: Interface) -> Result<Self> {
+        iface.set_itype(IType::Valve)?;
+        Ok(Self{
+            path:iface.path,
+        })
+    }
+}
 
 
  /// Lamp simulation
  pub struct Valve {
     path: PathBuf,
 }
-impl From<Driver> for Valve {
-    fn from(driver:Driver) -> Valve {
-        Valve{
-            path: driver.path
-        }
-    }
-}
 
 impl Valve {
-    pub async fn open(&mut self) -> io::Result<()> {
-        fs::write(self.path.join("state"), b"1").await?;
+    pub fn open(&mut self) -> io::Result<()> {
+        fs::write(self.path.join("value"), b"1")?;
         Ok(())
     }
-    pub async fn close(&mut self) -> io::Result<()> {
-        fs::write(self.path.join("state"), b"0").await?;
+    pub fn close(&mut self) -> io::Result<()> {
+        fs::write(self.path.join("value"), b"0")?;
         Ok(())
     }
 }
 
-pub async fn create(path:&Path) -> Result<Valve,MioError> {
-    let driver = driver::create(path,HID::Valve).await?;
-    fs::create_dir_all(path).await?;
-    fs::write(path.join("value"), b"0").await?;
-    Ok(driver.into())
-}
+// pub fn create(path:&Path) -> Result<Valve> {
+//     let dev = device::create(path,IType::Valve)?;
+//     fs::create_dir_all(path)?;
+//     fs::write(path.join("value"), b"0")?;
+//     Ok(dev.into())
+// }

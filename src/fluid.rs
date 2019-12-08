@@ -1,8 +1,19 @@
 /// Fluid sensor interface
-use async_std::path::{ PathBuf};
+use std::path::{ PathBuf};
 // use async_trait::async_trait;
-use super::{MioError,digital};
+use super::*;
 
+use std::convert::TryFrom;
+/// interface transfer
+impl TryFrom<Interface> for Fluid {
+    type Error = Error;
+    fn try_from(iface: Interface) -> Result<Self> {
+        iface.set_itype(IType::Fluid)?;
+        Ok(Self{
+            path:iface.path,
+        })
+    }
+}
 
 
 
@@ -11,13 +22,29 @@ pub struct Fluid {
 }
 
 
+impl From<&Interface> for Fluid {
+    #[inline]
+    fn from(device:&Interface) -> Fluid {
+        Fluid{
+            path: device.path.to_path_buf()
+        }
+    }
+}
+impl From<&Fluid> for digital::DigIN {
+    #[inline]
+    fn from(fluid:&Fluid) -> digital::DigIN {
+        digital::DigIN{
+            path: fluid.path.to_path_buf()
+        }
+    }
+}
 impl Fluid {
-    pub async fn empty(&self) -> Result<bool,MioError> {
-        digital::is_high(self.path.as_path()).await
+    pub fn empty(&self) -> Result<bool> {
+        digital::DigIN::from(self).is_high()
     }
 
-    pub async fn full(&self ) -> Result<bool,MioError> {
-        digital::is_low(self.path.as_path()).await
+    pub fn full(&self ) -> Result<bool> {
+        digital::DigIN::from(self).is_low()
     }
 }
 

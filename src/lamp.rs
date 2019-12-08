@@ -1,46 +1,53 @@
 /// Lamp UV
-// use async_std::prelude::*;
-use async_std::io;
-use async_std::fs;
-use async_std::path::{Path,PathBuf};
+// use std::prelude::*;
+use std::io;
+use std::fs;
+use std::path::{PathBuf};
 // use async_trait::async_trait;
 // use std::time::{Duration,Instant};
-use super::digital;
-use super::{driver,HID,Driver,MioError};
- /// Lamp interface
- pub struct Lamp {
+use super::*;
+
+use std::convert::TryFrom;
+/// interface transfer
+
+impl TryFrom<Interface> for Lamp {
+    type Error = Error;
+    fn try_from(iface: Interface) -> Result<Self> {
+        iface.set_itype(IType::Lamp)?;
+        Ok(Self{
+            path:iface.path,
+        })
+    }
+}
+
+/// Lamp interface
+pub struct Lamp {
     path: PathBuf,
 }
-impl From<Driver> for Lamp{
-    fn from(drv:Driver) -> Lamp {
+
+impl From<&Interface> for Lamp{
+    fn from(drv:&Interface) -> Lamp {
         Lamp{
-            path: drv.path
+            path: drv.path.to_path_buf()
         }
     }
 }
 
 impl Lamp {
-    pub async fn select(path: &Path) -> io::Result<Lamp> {
-        Ok({
-            Lamp{
-                path: path.to_path_buf(),
-            }
-        })
-    }
-    pub async fn set_on(&mut self)  -> io::Result<()> {
-        digital::set_high(self.path.as_path()).await?;
+    pub fn radiation_on(&mut self)  -> io::Result<()> {
+        fs::write(self.path.join("value"), b"1")?;
         Ok(())
     }
-    pub async fn set_off(&mut self) -> io::Result<()> {
-        digital::set_low(self.path.as_path()).await?;
+    pub fn radiation_off(&mut self) -> io::Result<()> {
+        fs::write(self.path.join("value"), b"0")?;
         Ok(())
     }
 }
 
 
 
-pub async fn create(path:&Path) -> Result<Lamp,MioError> {
-    let drv = driver::create(path,HID::Lamp).await?;
-    fs::write(path.join("value"), b"0").await?;
-    Ok(drv.into())
-}
+// pub fn create(path:&Path) -> Result<Lamp> {
+//     let drv = device::create(path,IType::Lamp)?;
+//     fs::write(path.join("radiation"), b"0")?;
+//     Ok(drv.into())
+// }

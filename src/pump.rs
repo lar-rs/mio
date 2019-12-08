@@ -1,40 +1,45 @@
 /// Monitor gear pump normally used for solution sampling.
 ///
 ///
-use async_std::path::{PathBuf,Path};
-use async_std::io;
-use async_std::fs;
+use std::path::{PathBuf,Path};
+use std::io;
+use std::fs;
 use std::fmt;
 
-use super::{MioError,HID,Driver,driver};
-use super::digital;
+use super::*;
 
- /// Lamp simulation
+use std::convert::TryFrom;
+impl TryFrom<Interface> for GearPump {
+    type Error = Error;
+    fn try_from(iface: Interface) -> Result<Self> {
+        iface.set_itype(IType::GearPump)?;
+        Ok(Self{
+            path:iface.path,
+        })
+    }
+}
+
+ /// GearPump  
  pub struct GearPump {
     path: PathBuf,
 }
-impl From<Driver> for GearPump {
-    fn from(drv:Driver) -> GearPump {
+
+impl From<&Interface> for GearPump {
+    fn from(drv:&Interface) -> GearPump {
         GearPump{
-            path: drv.path
+            path: drv.path.to_path_buf()
         }
     }
 }
 
 impl GearPump {
-    pub async fn select(path: &Path) -> io::Result<GearPump> {
-        Ok({
-            GearPump{
-                path: path.to_path_buf(),
-            }
-        })
-    }
-    pub async fn start(&mut self)  -> io::Result<()> {
-        digital::set_high(self.path.as_path()).await?;
+   
+    pub fn start(&mut self)  -> io::Result<()> {
+        fs::write(self.path.join("value"), b"1")?;
         Ok(())
     }
-    pub async fn stop(&mut self) -> io::Result<()> {
-        digital::set_low(self.path.as_path()).await?;
+    pub fn stop(&mut self) -> io::Result<()> {
+        fs::write(self.path.join("value"), b"0")?;
         Ok(())
     }
 }
@@ -108,33 +113,30 @@ pub struct ImpulsePump {
 }
 
 impl ImpulsePump {
-    pub async fn select(path: &Path) -> Result<ImpulsePump,MioError> {
+    pub fn select(path: &Path) -> Result<ImpulsePump> {
         Ok({
             ImpulsePump{
                 path: path.to_path_buf(),
             }
         })
     }
-    pub async fn start(&mut self)  -> io::Result<()> {
-        
-        digital::set_high(self.path.as_path()).await?;
+    pub fn start(&mut self)  -> io::Result<()> {
+        fs::write(self.path.join("value"),format!("{}",State::Start).as_bytes())?;
+        // digital::set_high(self.path.as_path())?;
         Ok(())
     }
-    pub async fn wait(&mut self)  -> io::Result<()> {
-        digital::set_high(self.path.as_path()).await?;
+    pub fn wait(&mut self)  -> io::Result<()> {
+        fs::write(self.path.join("value"),format!("{}",State::Wait).as_bytes())?;
         Ok(())
     }
-    pub async fn stop(&mut self) -> io::Result<()> {
-        digital::set_low(self.path.as_path()).await?;
+    pub fn stop(&mut self) -> io::Result<()> {
+        fs::write(self.path.join("value"),format!("{}",State::Stop).as_bytes())?;
         Ok(())
     }
 }
 
-pub async fn gearpump(path:&Path) -> io::Result<GearPump> {
-    driver::create(path,HID::GearPump).await?;
-    fs::write(path.join("value"), b"0").await?;
-    fs::write(path.join("pump"), b"simulation").await?;
-  
-    let gp = GearPump::select(path).await?;
-    Ok(gp)
-}
+// pub fn gear_pump(path:&Path) -> Result<GearPump> {
+//     // let dev =  device::create(path,IType::GearPump)?;
+//     fs::write(path.join("value"), b"0")?;
+//     Ok(GearPump::from(dev))
+// }

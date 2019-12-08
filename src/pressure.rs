@@ -1,56 +1,56 @@
 use std::fmt;
 // pub use uom::si::f32::{Ratio, Presure};
-use async_std::prelude::*;
-use async_std::stream;
+use std::prelude::*;
+use std::stream;
+
+use std::convert::TryFrom;
+impl TryFrom<Interface> for Pressure {
+    type Error = Error;
+    fn try_from(iface: Interface) -> Result<Self> {
+        iface.set_itype(IType::Pressure)?;
+        Ok(Self{
+            path:iface.path,
+        })
+    }
+}
 
 
 /// Hardware presure sensor.
 pub struct Pressure {
     path: PathBuf,
-    pub unit: String,
-    pub label: Option<String>,
-    pub current:u32 ,
-    pub brocken: bool,
-    pub critical:bool,
+
 }
 
-impl Presure{
-    pub async fn select(path:&Path) -> io::Result<Pressure> {
-
-    }
-    /// Returns sensor unit name.
-    pub fn unit(&self) -> &str {
-        &self.unit
-    }
-
-    /// Returns sensor label.
-    pub fn label(&self) -> Option<&str> {
-        self.label.as_ref().map(|s| s.as_str())
-    }
+impl Pressure{
 
     /// Returns current presure reported by sensor.
-    pub fn current(&self) -> Presure {
-        self.current
+    pub fn current_pressure(&self) -> Result<u32> {
+        let value = fs::read_to_string(self.path.join("pressure"))?.parse::<u32>()?;
+        Ok(value)
+    }
+    pub fn warning_pressure(&self) -> Result<u32> {
+        let warn = fs::read_to_string(self.path.join("warning_pressure"))?.parse::<u32>()?;
+         Ok(warn)
+    }
+    pub fn critical_pressure(&self) -> Result<u32> {
+        let critical = fs::read_to_string(self.path.join("critical_pressure"))?.parse::<u32>()?;
+         Ok(critical)
     }
 
-    /// Returns high trip point for sensor if available.
-    pub fn critical(&self) -> bool {
-        self.critical
-    }
-
-    /// Returns critical trip point for sensor if available.
-    pub fn brocken(&self) -> bool {
-        self.critical
-    }
 }
 
 
-// pub async fn check(sensor:Sensor) -> io::Result<bool> {
+// pub fn check(sensor:Sensor) -> io::Result<bool> {
 
 // }
 
-pub async fn pressure(path: &str) -> io::Result<Presure> {
-    let sensor = sensor(path.as_path()).await?;
+pub fn pressure(path: &Path) -> io::Result<Presure> {
+    
+    let sensor = sensor(path.as_path())?;
     Ok(sensor)
 }
 
+
+pub fn create(path:&Path ) -> io::Result<Pressure> {
+
+}
