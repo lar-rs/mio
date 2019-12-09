@@ -20,6 +20,7 @@ impl TryFrom<Interface> for Lamp {
     }
 }
 
+
 /// Lamp interface
 pub struct Lamp {
     path: PathBuf,

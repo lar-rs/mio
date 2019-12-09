@@ -17,10 +17,11 @@ pub mod valve;
 pub mod axis;
 pub mod stirrer;
 pub mod uv;
+pub mod cli;
 pub mod state;
 
 pub use self::error::MioError;
-pub use self::mio::Mio;
+pub use self::mio::{Workspace,Mio};
 pub use self::method::Method;
 pub use self::statistic::Statistic;
 pub use self::driver::Simulate;

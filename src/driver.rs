@@ -20,8 +20,9 @@ impl Simulate {
         let path = mio.path.join("driver/").join(name);
         if !path.is_dir() {
             fs::create_dir_all(&path)?;
-
         }
         Ok(Simulate{path})
     }
 }
+
+

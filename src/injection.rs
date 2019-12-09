@@ -24,7 +24,7 @@ impl TryFrom<Interface> for Injection {
         Ok(Self{
             path:iface.path,
         })
-    }
+    )
 }
 pub struct Injection{
     path     : PathBuf,
@@ -66,7 +66,7 @@ impl Injection {
             if moveto == self.position()? {
                 break;
             }
-        } 
+        }
         if moveto != self.position()? {
             let msg = format!("axis:{} move from {} to {} error - timeout in {} millis",device::label(self.path.as_path())?,pos,moveto,
             now.elapsed().unwrap_or(Duration::from_millis(999999u64)).as_millis());
@@ -85,7 +85,7 @@ impl Injection {
            if self.is_sensor()? {
                 break;
             }
-        } 
+        }
         if  self.is_sensor()? {
             let msg = format!("axis:{} command go to sensor fail - timeout in {} millis",device::label(self.path.as_path())?,
             now.elapsed().unwrap_or(Duration::from_millis(999999u64)).as_millis());
@@ -94,7 +94,7 @@ impl Injection {
         }
         Ok(())
     }
-  
+
     pub fn set_max(&mut self,max:u32) -> Result<()> {
         fs::write(self.path.join("max"),format!("{}",max).as_bytes())?;
         Ok(())
@@ -103,7 +103,7 @@ impl Injection {
         fs::write(self.path.join("velocity"),format!("{}",velocity).as_bytes())?;
         Ok(())
     }
-  
+
 }
 
 

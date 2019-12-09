@@ -16,7 +16,8 @@ pub const ERROR: &'static str       = "error";
 pub const TYPE: &'static str        = "type";
 pub const CLASS: &'static str       = "class";
 // pub const SIMULATE: &'static str = "simulate";
-
+use std::collections::BTreeSet;
+use serde::{Serialize,Deserialize};
 
 pub enum IType {
     DigOUT,
@@ -154,10 +155,32 @@ pub enum IClass {
     Unclassified,
     DigOUT,
     DigIN,
-    AOuts,
+    AOut,
     Sensor,
-    Valves,
-    Methode,
+    Valve,
+    Pump,
+    Method,
+}
+impl From<&str> for IClass {
+    fn from(value: &str) -> Self {
+        match value {
+            "unclassified"    => IClass::Unclassified,
+            "digout"          => IClass::DigOUT,
+            "digin"           => IClass::DigIN,
+            "analogout"       => IClass::AOut,
+            "sensor"          => IClass::Sensor,
+            "valve"           => IClass::Valve,
+            "pump"            => IClass::Pump,
+            "method"          => IClass::Method,
+            _                 => IClass::Unclassified,
+        }
+    }
+}
+
+impl From<String> for IClass {
+    fn from(value: String) -> Self {
+        IClass::from(value.as_str())
+    }
 }
 
 impl fmt::Display for IClass {
@@ -166,13 +189,16 @@ impl fmt::Display for IClass {
             IClass::Unclassified => return write!(f,"unclassified"),          
             IClass::DigOUT       => return write!(f,"digout"),           
             IClass::DigIN        => return write!(f,"digin"),    
-            IClass::AOuts        => return write!(f,"analogouts"),     
-            IClass::Methode      => return write!(f,"methods"),      
-            IClass::Valves       => return write!(f,"valves"),      
-            IClass::Sensor       => return write!(f,"sensors"),      
+            IClass::AOut         => return write!(f,"analogout"),     
+            IClass::Sensor       => return write!(f,"sensor"),      
+            IClass::Valve        => return write!(f,"valve"),      
+            IClass::Pump         => return write!(f,"pump"),      
+            IClass::Method       => return write!(f,"method"),      
         }
     }
 }
+
+
 /// mio interface 
 pub struct Interface {
     pub path: PathBuf,
@@ -266,3 +292,19 @@ impl Interface {
     }
 }
 
+fn bool_true() -> bool {
+    true
+}
+
+
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+pub struct IfaceConfig {
+    pub hid: u64,
+    #[serde(default)]
+    pub names: BTreeSet<String>,
+    #[serde(default = "bool_true")]
+    pub export: bool,
+    pub user: Option<String>,
+    pub group: Option<String>,
+    pub mode: Option<u32>,
+}
