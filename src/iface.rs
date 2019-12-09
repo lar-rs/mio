@@ -297,7 +297,7 @@ fn bool_true() -> bool {
 }
 
 
-#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq,Serialize, Deserialize)]
 pub struct IfaceConfig {
     pub hid: u64,
     #[serde(default)]
