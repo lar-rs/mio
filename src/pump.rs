@@ -19,7 +19,7 @@ impl TryFrom<Interface> for GearPump {
     }
 }
 
- /// GearPump  
+ /// GearPump
  pub struct GearPump {
     path: PathBuf,
 }
@@ -33,7 +33,6 @@ impl From<&Interface> for GearPump {
 }
 
 impl GearPump {
-   
     pub fn start(&mut self)  -> io::Result<()> {
         fs::write(self.path.join("value"), b"1")?;
         Ok(())
@@ -44,19 +43,19 @@ impl GearPump {
     }
 }
 /// [6210sub1] ParameterName=0=Stop, 1=Start 2=Wait ObjectType=0x7 DataType=0x0002 AccessType=rw DefaultValue=- PDOMapping=0
-/// [6210sub2] ParameterName=0=Normal, 1=Spulen,2=Intervall ObjectType=0x7 DataType=0x0002 AccessType=rw DefaultValue=- PDOMapping=0 
-/// [6210sub3] ParameterName=Drehrichtung rechts / links ObjectType=0x7 DataType=0x0002 AccessType=rw DefaultValue=0 PDOMapping=0 
-/// [6210sub4] ParameterName=Speed soll ObjectType=0x7 DataType=0x0002 AccessType=rw DefaultValue=0 PDOMapping=0 
-/// [6210sub5] ParameterName=Interwall Pos-Impulse ObjectType=0x7 DataType=0x0006 AccessType=rw DefaultValue=0 PDOMapping=0 
-/// [6210sub6] ParameterName=Interwall Time / sec ObjectType=0x7 DataType=0x0006 AccessType=rw DefaultValue=0 PDOMapping=0 
-/// [6210sub7] ParameterName=Position ObjectType=0x7 DataType=0x0006 AccessType=ro DefaultValue=0 PDOMapping=0 
+/// [6210sub2] ParameterName=0=Normal, 1=Spulen,2=Intervall ObjectType=0x7 DataType=0x0002 AccessType=rw DefaultValue=- PDOMapping=0
+/// [6210sub3] ParameterName=Drehrichtung rechts / links ObjectType=0x7 DataType=0x0002 AccessType=rw DefaultValue=0 PDOMapping=0
+/// [6210sub4] ParameterName=Speed soll ObjectType=0x7 DataType=0x0002 AccessType=rw DefaultValue=0 PDOMapping=0
+/// [6210sub5] ParameterName=Interwall Pos-Impulse ObjectType=0x7 DataType=0x0006 AccessType=rw DefaultValue=0 PDOMapping=0
+/// [6210sub6] ParameterName=Interwall Time / sec ObjectType=0x7 DataType=0x0006 AccessType=rw DefaultValue=0 PDOMapping=0
+/// [6210sub7] ParameterName=Position ObjectType=0x7 DataType=0x0006 AccessType=ro DefaultValue=0 PDOMapping=0
 /// [6210sub8] ParameterName=Delay PW ObjectType=0x7 DataType=0x0006 AccessType=ro DefaultValue=0 PDOMapping=0
 /// [6211] ParameterName=Konstanten 2 ObjectType=0x8 SubNumber=4
 /// [6211sub0] ParameterName=Nr of Subobjects ObjectType=0x7 DataType=0x0002 AccessType=ro DefaultValue=3 PDOMapping=0
-/// [6211sub1] ParameterName=K-p ObjectType=0x7 DataType=0x0006 AccessType=rw DefaultValue=6 PDOMapping=0 
-/// [6211sub2] ParameterName=K-d ObjectType=0x7 DataType=0x0006 AccessType=rw DefaultValue=1 PDOMapping=0 
+/// [6211sub1] ParameterName=K-p ObjectType=0x7 DataType=0x0006 AccessType=rw DefaultValue=6 PDOMapping=0
+/// [6211sub2] ParameterName=K-d ObjectType=0x7 DataType=0x0006 AccessType=rw DefaultValue=1 PDOMapping=0
 /// [6211sub3] ParameterName=K-i ObjectType=0x7 DataType=0x0006 AccessType=rw DefaultValue=1 PDOMapping=0
-/// 
+///
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum State {
     Stop,

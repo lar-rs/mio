@@ -1,7 +1,7 @@
 //! MultiIO
-//! 
-//! 
-//! 
+//!
+//!
+//!
 // use std::fs;
 // use std::fs::File;
 // use std::io::LineWriter;
@@ -24,7 +24,7 @@ use std::process;
 // use async_std::println;
 
 
-/// 📢 driver select 
+/// 📢 driver select
 #[derive(Debug, StructOpt)]
 pub enum Driver {
     #[structopt(name = "simulate", about = "📢 simulation driver")]
@@ -44,7 +44,7 @@ pub struct Args {
     ///🗁 miofs directory
     #[structopt(short = "p", long = "path", about = "📢 simulation driver", default_value = "/pwa")]
     path: PathBuf,
-    ///🔌 driver 
+    ///🔌 driver
     #[structopt(subcommand, about = "📢 subcommand to serve controller or start pipeline directly")]
     driver:Driver,
 }
@@ -68,6 +68,7 @@ fn main(args: Args) -> io::Result<()> {
     let pid = args.pid()?;
     let d =  mio::Mio::mount(&args.path.join("pwa"),"miofs");
     ctrlc::set_handler(move || {
+        // let m = mio.
         process::abort();
     }).expect("Error setting Ctrl-C handler");
     loop {
