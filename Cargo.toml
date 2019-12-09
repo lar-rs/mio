@@ -1,6 +1,6 @@
 [package]
 name = "mio"
-version = "0.0.7"
+version = "0.1.0"
 authors = ["Sascha Smolkov <sascha.smolkov@gmail.com>"]
 edition = "2018"
 keywords = ["hal","pump","valve","ndir","airflow","xysystem", "humidity", "pressure"]
