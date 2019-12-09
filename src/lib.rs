@@ -17,7 +17,7 @@ pub mod valve;
 pub mod axis;
 pub mod stirrer;
 pub mod uv;
-pub mod info;
+pub mod state;
 
 pub use self::error::MioError;
 pub use self::mio::Mio;
