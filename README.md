@@ -59,6 +59,7 @@ See [docs](https://docs.rs/embedded-hal-mock/).
 Rust embedded hal [github](https://github.com/rust-embedded/embedded-hal)
 
 <!-- Badges -->
+[workflow]:https://github.com/lar-rs/mio/workflows/ci/badge.svg
 [min-rust-badge]: https://img.shields.io/badge/rustc-1.31+-blue.svg
 [git-emoji]: https://www.webfx.com/tools/emoji-cheat-sheet
 

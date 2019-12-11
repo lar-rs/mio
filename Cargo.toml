@@ -4,6 +4,8 @@ version = "0.1.0"
 authors = ["Sascha Smolkov <sascha.smolkov@gmail.com>"]
 edition = "2018"
 keywords = ["hal","pump","valve","ndir","airflow","xysystem", "humidity", "pressure"]
+categories = [""]
+
 license = "Apache-2.0 OR MIT"
 readme = "README.md"
 repository = "https://github.com/lar-rs/mio"
@@ -22,7 +24,9 @@ cfg-if = "0.1.10"
 ## cli|args
 structopt = { version = "0.3", features = [ "paw" ] }
 paw = "1.0"
-# crossterm = "0.13.3"
+# clap-verbosity-flag = "0.3.0"
+crossterm = "0.13.3"
+
 
 log = "0.4.8"
 femme = "1.3.0"
@@ -41,6 +45,10 @@ toml = "0.5.5"
 # html-index = "0.2.0"
 # is_executable = "0.1.2"
 notify = "4.0.14"
+
+# OS Linux
+sysinfo = "0.10.2"
+human-panic = "1.0.1"
 # dbus="0.7.1"
 # path-table="1.0.0"
 # heapless = "0.5.1"

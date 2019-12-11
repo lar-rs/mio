@@ -1,4 +1,4 @@
-name: Rust
+name: ci
 
 on: [push]
 
@@ -6,8 +6,10 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
     steps:
+    - name: Display the path
+      run: echo $PATH
+      shell: bash
     - uses: actions/checkout@v1
     - name: Build
       run: cargo build --verbose
