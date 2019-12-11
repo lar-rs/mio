@@ -5,14 +5,26 @@ use std::path::{PathBuf,Path};
 use std::io;
 use std::fs;
 use std::fmt;
+use serde::{Serialize,Deserialize};
 
 use super::*;
+
+
+pub struct State{
+    mode: Mode,
+}
+
+
+pub enum Message{
+    SetState(Mode),
+}
 
 use std::convert::TryFrom;
 impl TryFrom<Interface> for GearPump {
     type Error = Error;
     fn try_from(iface: Interface) -> Result<Self> {
         iface.set_itype(IType::GearPump)?;
+        iface.set_iclass(IClass::Pump)?;
         Ok(Self{
             path:iface.path,
         })
@@ -24,21 +36,19 @@ impl TryFrom<Interface> for GearPump {
     path: PathBuf,
 }
 
-impl From<&Interface> for GearPump {
-    fn from(drv:&Interface) -> GearPump {
-        GearPump{
-            path: drv.path.to_path_buf()
-        }
-    }
-}
-
 impl GearPump {
+    pub fn open(path:&Path) -> io::Result<GearPump> {
+        let path = path.to_path_buf();
+        Ok(GearPump{
+            path:path,
+        })
+    }
     pub fn start(&mut self)  -> io::Result<()> {
-        fs::write(self.path.join("value"), b"1")?;
+        fs::write(self.path.join("value"),format!("{}",Mode::Start).as_bytes())?;
         Ok(())
     }
     pub fn stop(&mut self) -> io::Result<()> {
-        fs::write(self.path.join("value"), b"0")?;
+        fs::write(self.path.join("value"),format!("{}",Mode::Stop).as_bytes())?;
         Ok(())
     }
 }
@@ -56,57 +66,68 @@ impl GearPump {
 /// [6211sub2] ParameterName=K-d ObjectType=0x7 DataType=0x0006 AccessType=rw DefaultValue=1 PDOMapping=0
 /// [6211sub3] ParameterName=K-i ObjectType=0x7 DataType=0x0006 AccessType=rw DefaultValue=1 PDOMapping=0
 ///
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum State {
+#[derive(Clone, Copy,Serialize,Deserialize, Debug, PartialEq, Eq)]
+pub enum Mode {
     Stop,
     Start,
     Wait,
 }
 
 
-impl From<u8> for State {
+impl From<u8> for Mode {
     fn from(value: u8) -> Self {
         match value {
-            0 => State::Stop,
-            1 => State::Start,
-            2 => State::Wait,
-            _ => State::Stop,
+            0 => Mode::Stop,
+            1 => Mode::Start,
+            2 => Mode::Wait,
+            _ => Mode::Stop,
         }
     }
 }
 
-impl From<State> for u8 {
-    fn from(state:State) -> u8 {
+impl From<Mode> for u8 {
+    fn from(state:Mode) -> u8 {
         state.into()
     }
 }
 
-impl From<&str> for State {
+impl From<&str> for Mode {
     fn from(value: &str) -> Self {
         match value {
-            "stop"  =>  State::Stop,
-            "start" =>  State::Start,
-            "wait"  =>  State::Wait,
-            _       =>  State::Stop
+            "stop"  =>  Mode::Stop,
+            "start" =>  Mode::Start,
+            "wait"  =>  Mode::Wait,
+            _       =>  Mode::Stop
         }
     }
 }
 
-impl From<String> for State {
+impl From<String> for Mode {
     fn from(value: String) -> Self {
-        State::from(value.as_str())
+        Mode::from(value.as_str())
     }
 }
 
-impl fmt::Display for State {
+impl fmt::Display for Mode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            State::Stop  =>  return write!(f,"stop"),
-            State::Start =>  return write!(f,"start"),
-            State::Wait  =>  return write!(f,"wait"),
+            Mode::Stop  =>  return write!(f,"stop"),
+            Mode::Start =>  return write!(f,"start"),
+            Mode::Wait  =>  return write!(f,"wait"),
         }
     }
 }
+impl TryFrom<Interface> for ImpulsePump {
+    type Error = Error;
+    fn try_from(iface: Interface) -> Result<Self> {
+        iface.set_itype(IType::ImpulsPump)?;
+        iface.set_iclass(IClass::Pump)?;
+        Ok(Self{
+            path:iface.path,
+        })
+    }
+}
+
 pub struct ImpulsePump {
     path: PathBuf,
 }
@@ -120,19 +141,21 @@ impl ImpulsePump {
         })
     }
     pub fn start(&mut self)  -> io::Result<()> {
-        fs::write(self.path.join("value"),format!("{}",State::Start).as_bytes())?;
+        fs::write(self.path.join("value"),format!("{}",Mode::Start).as_bytes())?;
         // digital::set_high(self.path.as_path())?;
         Ok(())
     }
     pub fn wait(&mut self)  -> io::Result<()> {
-        fs::write(self.path.join("value"),format!("{}",State::Wait).as_bytes())?;
+        fs::write(self.path.join("value"),format!("{}",Mode::Wait).as_bytes())?;
         Ok(())
     }
     pub fn stop(&mut self) -> io::Result<()> {
-        fs::write(self.path.join("value"),format!("{}",State::Stop).as_bytes())?;
+        fs::write(self.path.join("value"),format!("{}",Mode::Stop).as_bytes())?;
         Ok(())
     }
 }
+
+
 
 // pub fn gear_pump(path:&Path) -> Result<GearPump> {
 //     // let dev =  device::create(path,IType::GearPump)?;

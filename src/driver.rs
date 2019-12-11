@@ -1,8 +1,7 @@
 /// Driver interface 
 /// 
-use std::fs;
 // use sysfs_gpio::{Direction,Pin};
-use std::path::{PathBuf};
+use std::path::{PathBuf,Path};
 
 // use async_trait::async_trait;
 use super::*;
@@ -10,19 +9,18 @@ use super::*;
 
 
 /// Simulate.
-pub struct Simulate {
+pub struct Driver {
     pub path : PathBuf,
 }
 
 
-impl Simulate {
-    pub fn create(mio:&Mio,name:&str) -> Result<Simulate> {
-        let path = mio.path.join("driver/").join(name);
+impl Driver {
+    pub fn open(path:&Path) -> Result<Driver> {
+        let path = path.to_path_buf();
         if !path.is_dir() {
-            fs::create_dir_all(&path)?;
+            Err(Error::Interface{msg: format!("{} driver not run",path.as_path().display())})
+        }else {
+            Ok(Driver{path})
         }
-        Ok(Simulate{path})
     }
 }
-
-

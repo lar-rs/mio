@@ -16,29 +16,31 @@ use std::collections::BTreeSet;
 
 
 
-
 /// Create mio 
-pub struct Mio {
+pub struct Workspace {
     pub path : PathBuf,
+    confdir: PathBuf,
 }
  
-impl Mio {
+impl Workspace {
     /// mount new mio fs
-    pub fn mount(path:&Path) -> Result<Mio> {
-        let path = path.join("mio");
-        if  !path.is_dir(){
-            log::info!("creatte new mio space in {}", path.display());
-            fs::create_dir_all(&path)?;
-            fs::create_dir_all(path.join("interfaces"))?;
-            let class = path.join("class");
+    pub fn setup() -> Result<Workspace> {
+        let rundir  =  dirs::runtime_dir().unwrap_or(PathBuf::from(".")).join("mio");
+        let config  =  dirs::config_dir().unwrap_or(PathBuf::from(".config")).join("mio");
+        if  !rundir.is_dir(){
+            log::info!("setup mio working space in {}", rundir.display());
+            fs::create_dir_all(&rundir)?;
+            fs::create_dir_all(rundir.join("interfaces"))?;
+            let class = rundir.join("class");
             fs::create_dir_all(&class)?;
         }
-        Ok(Mio{
-            path:path,
+        if !config.is_dir(){
+            fs::create_dir_all(&config)?;
+        }
+        Ok(Workspace{
+            path:rundir,
+            confdir:config,
         })
-    }
-    pub fn simulation_driver(&self) -> Result<Simulate> {
-        Ok(Simulate::create(self,"simulate")?)
     }
 
     pub fn create_interface(&mut self,name:&str) -> Result<Interface> {
@@ -51,7 +53,6 @@ impl Mio {
         }
         Ok(Interface::from(path))
     }
-
     pub fn get_interfaces(&self) -> Result<Vec<Interface>> {
         let path = self.path.join("interfaces");
         let mut interfaces:Vec<Interface> = Vec::new();
@@ -82,8 +83,8 @@ impl Mio {
         }
         Ok(interfaces)
     }
-    pub fn watch(&self ) -> Result<()>{
 
+    pub fn watch(&self ) -> Result<()>{
         let (tx, rx) = std::sync::mpsc::channel();
             // Command::new("mount").arg("-t").arg("tmpfs").arg("-t").arg("-o").arg("user,size=100M").arg("tmpfs").arg(path).spawn()?;
         let tx = tx.clone();
@@ -94,32 +95,17 @@ impl Mio {
         };
         Ok(())
     }
-    pub fn get_interface_dir(mio:&Mio)  -> PathBuf {
-        mio.path.join("interfaces")
+    pub fn get_interface_dir(&self)  -> PathBuf {
+        self.path.join("interfaces")
     }
-    pub fn get_class_dir(mio:&Mio)  -> PathBuf {
-        mio.path.join("class")
+    pub fn get_class_dir(&self)  -> PathBuf {
+        self.path.join("class")
     }
 }
 
 
-impl Drop for Mio {
+impl Drop for Workspace {
     fn drop(&mut self) {
         log::info!("unmount {:?} miofs", self.path);
     }
 }
-
-pub struct Workspace {
-   pub mio :Mio,
-}
-
-impl Workspace {
-    pub fn create() -> Result<Workspace>  {
-        let rundir = PathBuf::from("/run/user/1000");
-        let io = Mio::mount(&rundir)?;
-        Ok(Workspace{
-            mio: io,
-        })
-    }
-}
-

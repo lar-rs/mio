@@ -18,18 +18,22 @@ use std::convert::TryFrom;
 
 impl TryFrom<Interface> for Method {
     type Error = Error;
-    fn try_from(iface: Interface) -> Result<Self> {
+    fn try_from(iface: Interface) -> Result<Method> {
         iface.set_itype(IType::Method)?;
-        Ok(Self{
+        iface.set_iclass(IClass::Method)?;
+        Ok(Method{
             path:iface.path,
         })
     }
 }
 
+
+
 /// Interface 
 /// 
 pub struct Method{
     pub path: PathBuf,
+
 }
 
 
@@ -53,5 +57,7 @@ impl Method {
             Ok(false)
         }
     }
-}
+    // pub fn channels(&self) -> Result<Vec<Channel>> {jj
 
+    // }
+}

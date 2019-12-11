@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use super::*;
 use std::fs;
+use std::fmt;
 use std::path::{PathBuf};
 
 pub const INPUT:  &'static str     = "input";
@@ -55,6 +56,16 @@ impl TryFrom<Interface> for Airflow {
     }
 }
 
+/// interface transfer
+impl TryFrom<Airflow> for Interface {
+    type Error = Error;
+    fn try_from(airflow: Airflow) -> Result<Interface> {
+        Ok(Self{
+            path:airflow.path,
+        })
+    }
+}
+
 
 /// Hardware airflow sensor.
 pub struct Airflow {
@@ -96,7 +107,19 @@ impl Airflow {
         let value = fs::read_to_string(self.path.join(DEVIATION))?.parse::<f32>()?;
         Ok(value)
     }
+    pub fn critical(&self) -> Result<bool> {
+        Ok(true)
+    }
 }
+
+
+
+impl fmt::Display for Airflow {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,"airflow in:{} out:{} ",self.input().unwrap_or(0.0),self.output().unwrap_or(0.0))
+    }
+}
+
 
 
 // pub fn airflow() -> Result<Airflow> {

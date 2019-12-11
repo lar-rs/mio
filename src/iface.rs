@@ -15,6 +15,8 @@ pub const MODEL: &'static str       = "model";
 pub const ERROR: &'static str       = "error";
 pub const TYPE: &'static str        = "type";
 pub const CLASS: &'static str       = "class";
+pub const SUBSYSTEM: &'static str       = "class";
+
 // pub const SIMULATE: &'static str = "simulate";
 use std::collections::BTreeSet;
 use serde::{Serialize,Deserialize};
@@ -238,6 +240,10 @@ impl Interface {
         }
         Ok(Interface{path:path.to_path_buf()})
     }
+    pub fn driver(&self) -> Result<Driver> {
+        let drv = Driver::open(self.path.join("driver").as_path())?;
+        Ok(drv)
+    }
     pub fn label(&self) -> Result<String> {
         let label = fs::read_to_string(self.path.join(LABEL))?;
         Ok(label)
@@ -265,12 +271,12 @@ impl Interface {
         }
     }
 
-    pub fn driver(&self) -> Result<bool> {
-        match fs::read_to_string(self.path.join("driver"))?.as_str() {
-            "1" => Ok(true),
-            _ => Ok(false),
-        }
-    }
+    // pub fn driver(&self) -> Result<bool> {
+        // match fs::read_to_string(self.path.join("driver"))?.as_str() {
+            // "1" => Ok(true),
+            // _ => Ok(false),
+        // }
+    // }
     pub fn is_error(&self) -> Result<bool> {
         if self.path.join(ERROR).is_file() {
             Ok(true)
@@ -288,6 +294,11 @@ impl Interface {
     }
     pub fn set_iclass(&self,iclass:IClass) -> Result<()> {
         fs::write(self.path.join(CLASS), format!("{}",iclass))?;
+        let mut p = self.path.to_path_buf();
+        if p.pop() && p.pop() && p.is_dir() {
+            let class = p.join("class").join(format!("{}",iclass)).join(self.path.as_path().file_name().unwrap());
+            fs::hard_link(self.path.as_path(), &class)?; 
+        }
         Ok(())
     }
 }

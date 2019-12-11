@@ -12,9 +12,9 @@ pub struct State {
 }
 
 
-pub fn get_current(ws:&Workspace) -> Result<State> {
+pub fn get_current(station:&Workspace) -> Result<State> {
     let machine_id = fs::read_to_string("/etc/machine-id")?;
     let machine_info = fs::read_to_string("/etc/machine-info")?;
-    let interfaces = ws.mio.get_interfaces()?;
+    let interfaces = station.get_interfaces()?;
     Ok(State{ machine_id,machine_info,interfaces })
 }

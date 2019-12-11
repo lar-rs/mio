@@ -28,6 +28,7 @@ impl TryFrom<Interface> for Valve {
     type Error = Error;
     fn try_from(iface: Interface) -> Result<Self> {
         iface.set_itype(IType::Valve)?;
+        iface.set_iclass(IClass::Valve)?;
         Ok(Self{
             path:iface.path,
         })
@@ -42,10 +43,12 @@ impl TryFrom<Interface> for Valve {
 
 impl Valve {
     pub fn open(&mut self) -> io::Result<()> {
+        flame::start(format!{"{}",self.path.as_path().display()});
         fs::write(self.path.join("value"), b"1")?;
         Ok(())
     }
     pub fn close(&mut self) -> io::Result<()> {
+        flame::end(format!{"{}",self.path.as_path().display()});
         fs::write(self.path.join("value"), b"0")?;
         Ok(())
     }

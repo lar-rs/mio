@@ -1,6 +1,6 @@
 pub mod error;
-pub mod mio;
 pub mod iface;
+pub mod channel;
 pub mod method;
 pub mod statistic;
 pub mod driver;
@@ -17,14 +17,16 @@ pub mod valve;
 pub mod axis;
 pub mod stirrer;
 pub mod uv;
+pub mod ws;
 pub mod cli;
 pub mod state;
 
 pub use self::error::MioError;
-pub use self::mio::{Workspace,Mio};
+pub use self::ws::{Workspace};
 pub use self::method::Method;
+pub use self::channel::Channel;
 pub use self::statistic::Statistic;
-pub use self::driver::Simulate;
+pub use self::driver::Driver;
 pub use self::digital::{DigIN,DigOUT};
 pub use self::iface::{Interface,IType,IClass};
 pub use self::analog::Analog;

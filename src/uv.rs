@@ -40,26 +40,31 @@ pub struct Uv {
 }
 
 
-pub fn create(mio:&mut Mio) -> Result<Uv> {
-    let lamp   = Lamp::try_from(mio.create_interface("lamp")?)?;
-    let sv1    = Valve::try_from(mio.create_interface("valve1")?)?;
-    let sv2    = Valve::try_from(mio.create_interface("valve2")?)?;
-    let sv3    = Valve::try_from(mio.create_interface("valve3")?)?;
-    let sv4    = Valve::try_from(mio.create_interface("valve4")?)?;
-    let sv5    = Valve::try_from(mio.create_interface("valve5")?)?;
-    let sv6    = Valve::try_from(mio.create_interface("valve6")?)?;
-    let cal    = Valve::try_from(mio.create_interface("cal")?)?;
-    let tic    = Valve::try_from(mio.create_interface("tic")?)?;
-    let bypass = Valve::try_from(mio.create_interface("bypas")?)?;
-    let gp     = GearPump::try_from(mio.create_interface("gp")?)?;
-    let ndir1  = Sensor::try_from(mio.create_interface("ndir1")?)?;
-    let ndir2  = Sensor::try_from(mio.create_interface("ndir2")?)?;
+pub fn setup_hardware(station:&mut Workspace) -> Result<Uv> {
+    let lamp   = Lamp::try_from(station.create_interface("lamp")?)?;
+    let sv1    = Valve::try_from(station.create_interface("valve1")?)?;
+    let sv2    = Valve::try_from(station.create_interface("valve2")?)?;
+    let sv3    = Valve::try_from(station.create_interface("valve3")?)?;
+    let sv4    = Valve::try_from(station.create_interface("valve4")?)?;
+    let sv5    = Valve::try_from(station.create_interface("valve5")?)?;
+    let sv6    = Valve::try_from(station.create_interface("valve6")?)?;
+    let cal    = Valve::try_from(station.create_interface("cal")?)?;
+    let tic    = Valve::try_from(station.create_interface("tic")?)?;
+    let bypass = Valve::try_from(station.create_interface("bypas")?)?;
+    let gp     = GearPump::try_from(station.create_interface("gp")?)?;
+    let ndir1  = Sensor::try_from(station.create_interface("ndir1")?)?;
+    let ndir2  = Sensor::try_from(station.create_interface("ndir2")?)?;
     let sampl  = vec![sv1, sv2 ,sv3, sv4 ,sv5, sv6];
     let ndir   = vec![ndir1,ndir2];
-    let path   = mio.path.to_path_buf();
+    let path   = station.path.to_path_buf();
     Ok(Uv{path,lamp,sampl,cal,tic,bypass,gp,ndir})
 }
 
+
+
+pub fn setup_methode(station:&Workspace)  {
+
+}
 
 impl Uv {
 

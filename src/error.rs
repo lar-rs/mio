@@ -2,6 +2,7 @@
 
 use failure::{Fail};
 use std::io;
+use std::fmt;
 use std::io::{Error, ErrorKind};
 use std::num::ParseFloatError;
 use std::num::ParseIntError;
@@ -14,8 +15,12 @@ use std::num::ParseIntError;
 pub enum MioError {
     #[fail(display = "io error - {}",err)]
     IOError {err: Error },
+    #[fail(display = "fmt error - {}",err)]
+    FormatError {err: fmt::Error },
     #[fail(display = "async error - {}",err)]
     AsyncError {err: std::io::Error },
+    #[fail(display = "interface - {}",msg)]
+    Interface {msg: String},
     #[fail(display = "mount miofs error - {}",msg)]
     Mount {msg: String},
     #[fail(display = "data error - {}",msg)]
@@ -41,6 +46,11 @@ pub fn driver_timeout(msg:String) -> MioError {
 impl From<Error> for MioError {
     fn from(kind:io::Error) -> MioError {
         MioError::IOError{err: kind}
+    }
+}
+impl From<fmt::Error> for MioError {
+    fn from(kind:fmt::Error) -> MioError {
+        MioError::FormatError{err: kind}
     }
 }
 impl From<MioError> for Error {

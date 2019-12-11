@@ -147,7 +147,7 @@ pub struct Sensor {
 }
 
 impl Sensor {
-    pub fn select(path: &Path) -> Result<Sensor> {
+    pub fn open(path: &Path) -> Result<Sensor> {
         let path    = path.to_path_buf();
         Ok(Sensor{path})
     }
@@ -173,6 +173,11 @@ impl Sensor {
     pub fn set_interval(&mut self, millis: u64) -> Result<()>{
         fs::write(self.path.join(INTERVAL),format!("{}",millis).as_bytes())?;
         Ok(())
+    }
+    pub fn read_data() -> Result<Vec<Data>> {
+        let mut datas : Vec<Data> = Vec::new();
+         
+        Ok(datas)
     }
 }
 

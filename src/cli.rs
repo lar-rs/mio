@@ -39,8 +39,3 @@ pub struct Args {
     cmd:Cmd,
 
 }
-
-//
-impl Args {
-   // Access the directory name.
-}

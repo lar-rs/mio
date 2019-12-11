@@ -8,7 +8,7 @@
 use std::io;
 // use std::io::prelude::*;
 use std::path::{PathBuf};
-use structopt::StructOpt;
+// use structopt::StructOpt;
 // use clap_flags::Log;
 use std::process;
 // use std::stream;
@@ -32,12 +32,13 @@ fn main(args: Args) -> io::Result<()> {
     femme::start(log::LevelFilter::Trace).unwrap();
 
     
-    let ws = mio::Workspace::create()?;
+    let ws = mio::Workspace::setup()?;
     ctrlc::set_handler(move || {
         // let m = mio.
         process::abort();
     }).expect("Error setting Ctrl-C handler");
-    ws.mio.watch()?;
+    // let uv = mio::uv::create(&ws.mio)?;
+
     // match args.cmd {
 
     // }
