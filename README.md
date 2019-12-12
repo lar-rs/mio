@@ -8,8 +8,9 @@
 ![open issue][issue]
 ![Minimum Rust Version][min-rust-badge]
 
-LAR Hardware abstraction layer 
+LAR Hardware abstraction layer
 ![pipeline status](https://travis-ci.com/lar-rs/mio.svg?branch=master)
+
 ![Minimum Rust Version][min-rust-badge]
 analyzer redisign in [🦀 **Rust**](https://github.com/rust-lang)
 
@@ -59,7 +60,7 @@ See [docs](https://docs.rs/embedded-hal-mock/).
 Rust embedded hal [github](https://github.com/rust-embedded/embedded-hal)
 
 <!-- Badges -->
-[workflow]:https://github.com/lar-rs/mio/workflows/ci/badge.svg
+[min-rust-badge]: https://img.shields.io/badge/rustc-1.31+-blue.svg
 [min-rust-badge]: https://img.shields.io/badge/rustc-1.31+-blue.svg
 [git-emoji]: https://www.webfx.com/tools/emoji-cheat-sheet
 

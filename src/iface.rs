@@ -240,8 +240,8 @@ impl Interface {
         }
         Ok(Interface{path:path.to_path_buf()})
     }
-    pub fn driver(&self) -> Result<Driver> {
-        let drv = Driver::open(self.path.join("driver").as_path())?;
+    pub fn driver(&self,pid:u32) -> Result<Driver> {
+        let drv = Driver::open(self.path.as_path(),pid)?;
         Ok(drv)
     }
     pub fn label(&self) -> Result<String> {
