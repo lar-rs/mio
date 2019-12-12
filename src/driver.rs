@@ -38,7 +38,7 @@ impl Drop for Driver {
     }
 }
 
-pub fn start_driver(path: &Path) -> Result<Driver> {
+pub fn start(path: &Path) -> Result<Driver> {
     let pid = process::id();
     log::info!("new driver {} start",pid);
     let src = PathBuf::from(format!("/proc/{}",pid));
